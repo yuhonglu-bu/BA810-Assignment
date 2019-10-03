@@ -91,7 +91,12 @@ house_mse <- rbind(house_mse_train, house_mse_test)
 
 # Plot MSEs
 ```{r}
+mse_min <- house_mse %>% 
+  group_by(dataset) %>% 
+  filter(mse == min(mse))
+
 ggplot(house_mse, aes(lamda, mse, col = dataset)) +
-  geom_line()
+  geom_line() +
+  geom_point(data = mse_min, aes(lamda, mse))
 ```
 
