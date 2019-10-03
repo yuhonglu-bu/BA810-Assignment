@@ -100,3 +100,16 @@ ggplot(house_mse, aes(lamda, mse, col = dataset)) +
   geom_point(data = mse_min, aes(lamda, mse))
 ```
 
+# Best fitting model
+```{r}
+# Lamda minimizes test MSE
+lamda_min_mse_test <- mse_min$lamda[which(mse_min$dataset == 'Test')]
+print(lamda_min_mse_test)
+
+# Coefficient
+coef(est, s = lamda_min_mse_test)
+```
+If I am a CA real estate investor, I will focus on housing age and hosing income as this two factors have the highest positive influence on the housing price. Then I will pay my attention to the population as it has the highest negative influence on the housing price. The other thing I will take my consideration is the location of the houses, houses on islands may have higher price while house inland may have negative influence on their price.
+
+# Collaboration statement
+I did the assignment by my own. Finished on Oct 3th, open source on my Github: https://github.com/yuhonglu-bu/BA810-Assignment.git.
