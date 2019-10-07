@@ -7,7 +7,9 @@ output:
 ---
 
 # Setup
-```{r}
+```{r message=FALSE, warning=FALSE}
+options(tinytex.verbose = TRUE)
+library(tinytex)
 library(tidyverse)
 library(magrittr)
 library(ggplot2)
@@ -42,16 +44,12 @@ y_test <- y_data[test_offsets]
 # Run Lasso regressions
 ```{r}
 est <- glmnet(x_train, y_train, alpha = 1, nlambda = 100)
-est$lambda
-length(est$lambda)
 ```
 
 # Prediction
 ```{r}
 y_train_hat <- predict(est, x_train)
 y_test_hat <- predict(est, x_test)
-dim(y_train_hat)
-dim(y_test_hat)
 ```
 
 # Compute MSEs
