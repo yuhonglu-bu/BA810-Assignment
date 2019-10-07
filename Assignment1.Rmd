@@ -22,25 +22,21 @@ house <- read_csv('housing.csv')
 
 # replace na value in total_bedrooms col
 total_bedrooms_median <- median(house$total_bedrooms, na.rm = T)
-house <- replace_na(house, replace = (list(total_bedrooms = total_bedrooms_median)))
+house <- house %>% replace_na(list("total_bedrooms" = total_bedrooms_median))
 ```
 
 # Split into training and testing
 ```{r}
-set.seed(68065591)
-train_index <- sample(nrow(house), 15000)
+train_offsets <- seq(5000)
+test_offsets <- 15000 + seq(3000)
 
-x_data <- model.matrix( ~ -1 + total_rooms + total_bedrooms + households + housing_median_age + population + median_income + ocean_proximity, 
-                        house)
+x_data <- model.matrix( ~ -1 + total_rooms + total_bedrooms + households + housing_median_age + population + median_income + ocean_proximity, house)
 y_data <- house$median_house_value / 1e6
 
-# training data
-x_train <- x_data[train_index, ]
-y_train <- y_data[train_index]
-
-# testing data
-x_test <- x_data[-train_index, ]
-y_test <- y_data[-train_index]
+x_train <- x_data[train_offsets, ]
+y_train <- y_data[train_offsets]
+x_test <- x_data[test_offsets, ]
+y_test <- y_data[test_offsets]
 ```
 
 # Run Lasso regressions
@@ -52,8 +48,8 @@ length(est$lambda)
 
 # Prediction
 ```{r}
-y_train_hat <- predict(est, newx = x_train)
-y_test_hat <- predict(est, newx = x_test)
+y_train_hat <- predict(est, x_train)
+y_test_hat <- predict(est, x_test)
 dim(y_train_hat)
 dim(y_test_hat)
 ```
@@ -75,13 +71,13 @@ for(i in 1 : ncol(y_test_hat)) {
 ```{r}
 # Training MSEs
 house_mse_train <- tibble(
-  lamda = est$lambda,
+  lambda = est$lambda,
   mse = mse_train,
   dataset = 'Train'
 )
 # Testing MSEs
 house_mse_test <- tibble(
-  lamda = est$lambda,
+  lambda = est$lambda,
   mse = mse_test,
   dataset = 'Test'
 )
@@ -95,19 +91,20 @@ mse_min <- house_mse %>%
   group_by(dataset) %>% 
   filter(mse == min(mse))
 
-ggplot(house_mse, aes(lamda, mse, col = dataset)) +
+ggplot(house_mse, aes(lambda, mse, col = dataset)) +
   geom_line() +
-  geom_point(data = mse_min, aes(lamda, mse))
+  geom_point(data = mse_min, aes(lambda, mse)) +
+  scale_x_reverse()
 ```
 
 # Best fitting model
 ```{r}
 # Lamda minimizes test MSE
-lamda_min_mse_test <- mse_min$lamda[which(mse_min$dataset == 'Test')]
-print(lamda_min_mse_test)
+lambda_min_mse_test <- mse_min$lambda[which(mse_min$dataset == 'Test')]
+print(lambda_min_mse_test)
 
 # Coefficient
-coef(est, s = lamda_min_mse_test)
+coef(est, s = lambda_min_mse_test)
 ```
 If I am a CA real estate investor, I will focus on housing age and hosing income as this two factors have the highest positive influence on the housing price. Then I will pay my attention to the population as it has the highest negative influence on the housing price. The other thing I will take my consideration is the location of the houses, houses on islands may have higher price while house inland may have negative influence on their price.
 
